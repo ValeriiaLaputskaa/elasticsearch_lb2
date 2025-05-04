@@ -55,11 +55,15 @@ public class ProductService {
         redisCacheService.delete("product:" + id);
     }
 
-    public List<Product> searchProductsByTitle(String title) {
+    public List<Product> searchProductsWithCacheAndElastic(String title) {
         String cacheKey = "search:title:" + title.toLowerCase();
+
+        long startTime = System.currentTimeMillis();
 
         Object cached = redisCacheService.get(cacheKey);
         if (cached != null) {
+            long endTime = System.currentTimeMillis();
+            System.out.println("Redis search time: " + (endTime - startTime) + " ms");
             return (List<Product>) cached;
         }
 
@@ -68,9 +72,24 @@ public class ProductService {
                 .map(ProductMapper::mapToEntity)
                 .toList();
 
+        long endTime = System.currentTimeMillis();
+        System.out.println("Elasticsearch search time: " + (endTime - startTime) + " ms");
+
+        System.out.println("Saving to Redis with key: " + cacheKey);
         redisCacheService.save(cacheKey, products, 1);
         return products;
     }
 
+    public List<Product> searchProductsInPostgres(String title) {
+        long startTime = System.currentTimeMillis();
+
+        List<Product> products = productRepository.findByTitleContainingIgnoreCase(title);
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("PostgreSQL search time: " + (endTime - startTime) + " ms");
+
+        return products;
+    }
 }
+
 

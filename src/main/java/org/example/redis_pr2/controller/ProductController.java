@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-//@Controller
 @RequiredArgsConstructor
 @RequestMapping("/product")
 public class ProductController {
@@ -44,7 +43,12 @@ public class ProductController {
 
     @GetMapping("/search")
     public ResponseEntity<List<Product>> searchProducts(@RequestParam String title) {
-        return ResponseEntity.ok(productService.searchProductsByTitle(title));
+        return ResponseEntity.ok(productService.searchProductsWithCacheAndElastic(title));
+    }
+
+    @GetMapping("/search/pg")
+    public ResponseEntity<List<Product>> searchInPostgres(@RequestParam String title) {
+        return ResponseEntity.ok(productService.searchProductsInPostgres(title));
     }
 
 }
