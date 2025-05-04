@@ -1,12 +1,15 @@
 package org.example.redis_pr2.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.redis_pr2.elasticsearch.ProductDocument;
 import org.example.redis_pr2.elasticsearch.ProductElasticsearchRepository;
 import org.example.redis_pr2.entity.Product;
 import org.example.redis_pr2.mapper.ProductMapper;
 import org.example.redis_pr2.payload.user.CreateProductRequest;
 import org.example.redis_pr2.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -50,6 +53,23 @@ public class ProductService {
     public void deleteProductById(Long id) {
         productRepository.deleteById(id);
         redisCacheService.delete("product:" + id);
+    }
+
+    public List<Product> searchProductsByTitle(String title) {
+        String cacheKey = "search:title:" + title.toLowerCase();
+
+        Object cached = redisCacheService.get(cacheKey);
+        if (cached != null) {
+            return (List<Product>) cached;
+        }
+
+        List<ProductDocument> documents = productElasticsearchRepository.findByTitleContainingIgnoreCase(title);
+        List<Product> products = documents.stream()
+                .map(ProductMapper::mapToEntity)
+                .toList();
+
+        redisCacheService.save(cacheKey, products, 1);
+        return products;
     }
 
 }

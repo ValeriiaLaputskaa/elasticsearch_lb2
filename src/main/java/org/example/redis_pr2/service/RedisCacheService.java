@@ -12,8 +12,12 @@ public class RedisCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    public void save(String key, Object value, int minutes) {
+        redisTemplate.opsForValue().set(key, value, minutes, TimeUnit.MINUTES);
+    }
+
     public void save(String key, Object value) {
-        redisTemplate.opsForValue().set(key, value, 1, TimeUnit.MINUTES);
+        save(key, value, 1);
     }
 
     public Object get(String key) {

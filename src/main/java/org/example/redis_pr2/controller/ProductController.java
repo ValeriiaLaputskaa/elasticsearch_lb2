@@ -6,11 +6,12 @@ import org.example.redis_pr2.payload.user.CreateProductRequest;
 import org.example.redis_pr2.service.ExternalProductService;
 import org.example.redis_pr2.service.ProductService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
-@Controller
+@RestController
+//@Controller
 @RequiredArgsConstructor
 @RequestMapping("/product")
 public class ProductController {
@@ -41,5 +42,9 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam String title) {
+        return ResponseEntity.ok(productService.searchProductsByTitle(title));
+    }
 
 }
